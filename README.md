@@ -1,1 +1,1 @@
-# Criador-de-relatorio
+# Criador-de-relatorio - Base GLPI - Json
