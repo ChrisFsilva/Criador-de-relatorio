@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisador de Inventário de Computador</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            opacity: 0.8;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        
+        .upload-section {
+            flex: 1;
+            min-width: 300px;
+            padding: 25px;
+            border-right: 1px solid #eee;
+        }
+        
+        .results-section {
+            flex: 2;
+            min-width: 500px;
+            padding: 25px;
+        }
+        
+        .upload-area {
+            border: 2px dashed #3498db;
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+            background-color: #f8fafc;
+        }
+        
+        .upload-area:hover {
+            background-color: #eef5fd;
+        }
+        
+        .upload-area.highlight {
+            border-color: #2ecc71;
+            background-color: #e8f6ef;
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            color: #3498db;
+            margin-bottom: 15px;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            border: none;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-secondary {
+            background-color: #95a5a6;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+        
+        .file-name {
+            margin-top: 15px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .info-item {
+            padding: 12px 15px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .info-value {
+            color: #34495e;
+            word-break: break-word;
+        }
+        
+        .empty-value {
+            color: #95a5a6;
+            font-style: italic;
+        }
+        
+        .applications-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        
+        .applications-table th {
+            background-color: #2c3e50;
+            color: white;
+            text-align: left;
+            padding: 12px 15px;
+        }
+        
+        .applications-table td {
+            padding: 10px 15px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        
+        .applications-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .applications-table tr:hover {
+            background-color: #eef5fd;
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 30px;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        
+        .error-message {
+            background-color: #fde8e8;
+            color: #c53030;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid #3498db;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+            font-size: 14px;
+            border-top: 1px solid #ecf0f1;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 900px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .upload-section {
+                border-right: none;
+                border-bottom: 1px solid #eee;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Analisador de Inventário de Computador</h1>
+            <p class="subtitle">Faça upload de um arquivo JSON de inventário para extrair informações do sistema</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="upload-section">
+                <h2 class="section-title">Upload do Arquivo</h2>
+                
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📁</div>
+                    <p>Arraste e solte seu arquivo JSON aqui</p>
+                    <p>ou</p>
+                    <label for="fileInput" class="btn">Selecionar Arquivo</label>
+                    <input type="file" id="fileInput" class="file-input" accept=".json">
+                </div>
+                
+                <div class="file-name" id="fileName">Nenhum arquivo selecionado</div>
+                
+                <button class="btn btn-secondary" id="resetBtn">Limpar Dados</button>
+                <button class="btn" id="exampleBtn">Usar Exemplo</button>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Processando arquivo...</p>
+                </div>
+                
+                <div class="error-message" id="errorMessage"></div>
+            </div>
+            
+            <div class="results-section">
+                <h2 class="section-title">Informações do Sistema</h2>
+                
+                <div id="systemInfo">
+                    <div class="no-data" id="noDataMessage">
+                        Faça upload de um arquivo JSON para visualizar as informações do sistema
+                    </div>
+                    
+                    <div id="infoContent" style="display: none;">
+                        <h3>Informações Gerais</h3>
+                        <div class="info-grid" id="generalInfo"></div>
+                        
+                        <h3>Informações de Hardware</h3>
+                        <div class="info-grid" id="hardwareInfo"></div>
+                        
+                        <h3>Informações de Software</h3>
+                        <div class="info-grid" id="softwareInfo"></div>
+                        
+                        <h3>Lista de Aplicativos Instalados</h3>
+                        <div id="applicationsContainer"></div>
+                        
+                        <h3>Lista de Perfis de Usuário</h3>
+                        <div id="usersContainer"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Analisador de Inventário de Computador | Processa arquivos JSON de inventário do GLPI Agent</p>
+        </footer>
+    </div>
+
+    <script>
+        // Elementos do DOM
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const fileName = document.getElementById('fileName');
+        const resetBtn = document.getElementById('resetBtn');
+        const exampleBtn = document.getElementById('exampleBtn');
+        const loading = document.getElementById('loading');
+        const errorMessage = document.getElementById('errorMessage');
+        const noDataMessage = document.getElementById('noDataMessage');
+        const infoContent = document.getElementById('infoContent');
+        const generalInfo = document.getElementById('generalInfo');
+        const hardwareInfo = document.getElementById('hardwareInfo');
+        const softwareInfo = document.getElementById('softwareInfo');
+        const applicationsContainer = document.getElementById('applicationsContainer');
+        const usersContainer = document.getElementById('usersContainer');
+
+        // Dados do exemplo (extraídos do JSON fornecido)
+        const exampleData = {
+            "action": "inventory",
+            "content": {
+                "accesslog": {
+                    "logdate": "2025-12-04 11:41:52"
+                },
+                "bios": {
+                    "bdate": "2024-04-10",
+                    "bmanufacturer": "Dell Inc.",
+                    "bversion": "1.30.0",
+                    "mmanufacturer": "Dell Inc.",
+                    "mmodel": "0T0MC0",
+                    "msn": "\/7B3HB93\/BRFCB000BU01J6\/",
+                    "skunumber": "08CA",
+                    "smanufacturer": "Dell Inc.",
+                    "smodel": "Inspiron 3583",
+                    "ssn": "7B3HB93"
+                },
+                "cpus": [
+                    {
+                        "description": "Intel64 Family 6 Model 142 Stepping 12",
+                        "manufacturer": "Intel(R) Corporation",
+                        "name": "Intel Core i5-8265U CPU @ 1.60GHz",
+                        "speed": 1600
+                    }
+                ],
+                "drives": [
+                    {
+                        "description": "Disco Fixo Local",
+                        "filesystem": "NTFS",
+                        "free": 138330,
+                        "serial": "9A55BADC",
+                        "systemdrive": true,
+                        "total": 243039,
+                        "type": "Local Disk"
+                    }
+                ],
+                "hardware": {
+                    "chassis_type": "Notebook",
+                    "defaultgateway": "192.168.0.2",
+                    "dns": "192.168.12.4",
+                    "lastloggeduser": "cemerson",
+                    "memory": 8066,
+                    "name": "emiratos",
+                    "uuid": "4C4C4544-0042-3310-8048-B7C04F423933",
+                    "vmsystem": "Physical",
+                    "winlang": "1046",
+                    "winowner": "Admin",
+                    "winprodid": "00331-20020-00000-AA865",
+                    "workgroup": "alamedasp.com.br"
+                },
+                "networks": [
+                    {
+                        "description": "Intel(R) Wireless-AC 9462",
+                        "ipaddress": "192.168.0.136",
+                        "ipdhcp": "192.168.0.2",
+                        "ipgateway": "192.168.0.2",
+                        "ipmask": "255.255.255.0",
+                        "ipsubnet": "192.168.0.0",
+                        "mac": "5C:CD:5B:A7:45:2C",
+                        "speed": "200",
+                        "status": "up",
+                        "type": "wifi",
+                        "virtualdev": false
+                    }
+                ],
+                "operatingsystem": {
+                    "arch": "64-bit",
+                    "boot_time": "2025-12-02 08:24:47",
+                    "dns_domain": "alamedasp.com.br",
+                    "fqdn": "emiratos.alamedasp.com.br",
+                    "full_name": "Microsoft Windows 11 Pro",
+                    "install_date": "2024-11-27 12:35:57",
+                    "kernel_name": "MSWin32",
+                    "kernel_version": "10.0.26100",
+                    "name": "Windows",
+                    "service_pack": "26100.6584",
+                    "timezone": {
+                        "name": "America/Sao_Paulo",
+                        "offset": "-0300"
+                    },
+                    "version": "24H2"
+                },
+                "softwares": [
+                    {
+                        "arch": "x86_64",
+                        "from": "registry",
+                        "guid": "Dell Peripheral Manager",
+                        "install_date": "2024-11-27",
+                        "name": "Dell Peripheral Manager",
+                        "publisher": "Dell Inc.",
+                        "system_category": "application",
+                        "uninstall_string": "C:\\Program Files\\Dell\\Dell Peripheral Manager\\Uninstall.exe",
+                        "version": "1.7.7"
+                    },
+                    {
+                        "arch": "x86_64",
+                        "from": "registry",
+                        "guid": "O365BusinessRetail - pt-br",
+                        "install_date": "2025-12-02",
+                        "name": "Microsoft 365 Apps para Pequenos e Médias negócios - pt-br",
+                        "no_remove": false,
+                        "publisher": "Microsoft Corporation",
+                        "system_category": "application",
+                        "uninstall_string": "\"C:\\Program Files\\Common Files\\Microsoft Shared\\ClickToRun\\OfficeClickToRun.exe\" scenario=install scenariosubtype=ARP sourcetype=None productstoremove=O365BusinessRetail.16_pt-br_x-none culture=pt-br version.16=16.0",
+                        "version": "16.0.19328.20244"
+                    }
+                ],
+                "storages": [
+                    {
+                        "description": "PCI Slot 16 : Bus 2 : Device 0 : Function 0 : Adapter 1",
+                        "disksize": 256060,
+                        "firmware": "92004171",
+                        "interface": "NVME",
+                        "model": "IM2P33F3A NVMe ADATA 256GB",
+                        "name": "PhysicalDisk0",
+                        "serial": "0000_0000_0000_0000_707C_1800_0000_0001.",
+                        "type": "SSD"
+                    }
+                ],
+                "users": [
+                    {
+                        "domain": "ALAMEDASP",
+                        "login": "cemerson"
+                    }
+                ],
+                "versionclient": "GLPI-Agent_v1.7.1"
+            },
+            "deviceid": "emiratos-2025-12-04-11-39-08",
+            "itemtype": "Computer"
+        };
+
+        // Event Listeners
+        fileInput.addEventListener('change', handleFileSelect);
+        resetBtn.addEventListener('click', resetForm);
+        exampleBtn.addEventListener('click', loadExample);
+
+        // Drag and Drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('highlight');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('highlight');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('highlight');
+            
+            if (e.dataTransfer.files.length) {
+                const file = e.dataTransfer.files[0];
+                if (file.type === 'application/json' || file.name.endsWith('.json')) {
+                    handleFile(file);
+                } else {
+                    showError('Por favor, selecione um arquivo JSON válido.');
+                }
+            }
+        });
+
+        // Função para manipular seleção de arquivo
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+
+        // Função para processar o arquivo
+        function handleFile(file) {
+            // Validar tipo de arquivo
+            if (file.type !== 'application/json' && !file.name.endsWith('.json')) {
+                showError('Por favor, selecione um arquivo JSON válido.');
+                return;
+            }
+            
+            // Atualizar nome do arquivo
+            fileName.textContent = `Arquivo: ${file.name}`;
+            
+            // Mostrar indicador de carregamento
+            loading.style.display = 'block';
+            errorMessage.style.display = 'none';
+            
+            // Ler o arquivo
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    processInventoryData(data);
+                    loading.style.display = 'none';
+                } catch (error) {
+                    loading.style.display = 'none';
+                    showError('Erro ao processar o arquivo JSON. Verifique se o arquivo é válido.');
+                    console.error('Erro ao processar JSON:', error);
+                }
+            };
+            
+            reader.onerror = function() {
+                loading.style.display = 'none';
+                showError('Erro ao ler o arquivo. Tente novamente.');
+            };
+            
+            reader.readAsText(file);
+        }
+
+        // Função para processar os dados de inventário
+        function processInventoryData(data) {
+            // Verificar se o arquivo tem a estrutura esperada
+            if (!data.content || !data.content.hardware) {
+                showError('O arquivo JSON não contém a estrutura de inventário esperada.');
+                return;
+            }
+            
+            // Extrair informações
+            const content = data.content;
+            const hardware = content.hardware;
+            const bios = content.bios || {};
+            const os = content.operatingsystem || {};
+            const cpu = content.cpus && content.cpus.length > 0 ? content.cpus[0] : {};
+            const drives = content.drives || [];
+            const storage = content.storages && content.storages.length > 0 ? content.storages[0] : {};
+            const networks = content.networks || [];
+            const softwares = content.softwares || [];
+            const users = content.users || [];
+            
+            // Encontrar o disco do sistema
+            const systemDrive = drives.find(drive => drive.systemdrive === true) || drives[0] || {};
+            
+            // Encontrar adaptador de rede ativo
+            const activeNetwork = networks.find(net => net.status === 'up') || networks[0] || {};
+            
+            // Calcular Data de Aquisição (usando data do BIOS ou data de instalação do OS)
+            const acquisitionDate = bios.bdate || os.install_date || content.accesslog?.logdate || 'Não disponível';
+            
+            // Processar memória (converter de MB para GB)
+            const memoryMB = hardware.memory || 0;
+            const memoryGB = memoryMB > 0 ? (memoryMB / 1024).toFixed(2) + ' GB' : 'Não disponível';
+            
+            // Processar tamanho do disco
+            const diskSizeGB = storage.disksize ? (storage.disksize / 1024).toFixed(2) + ' GB' : 
+                              (systemDrive.total ? (systemDrive.total / 1024).toFixed(2) + ' GB' : 'Não disponível');
+            
+            // Gerar HTML para informações gerais
+            generalInfo.innerHTML = `
+                <div class="info-item">
+                    <div class="info-label">Data de Aquisição:</div>
+                    <div class="info-value">${formatDate(acquisitionDate)}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Fabricante:</div>
+                    <div class="info-value">${bios.smanufacturer || bios.bmanufacturer || 'Não disponível'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Modelo:</div>
+                    <div class="info-value">${bios.smodel || bios.mmodel || 'Não disponível'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Número de Série:</div>
+                    <div class="info-value">${bios.ssn || bios.msn || 'Não disponível'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Tipo de Sistema:</div>
+                    <div class="info-value">${hardware.vmsystem === 'Physical' ? 'Físico' : hardware.vmsystem || 'Não disponível'}</div>
+                </div>
+            `;
+            
+            // Gerar HTML para informações de hardware
+            hardwareInfo.innerHTML = `
+                <div class="info-item">
+                    <div class="info-label">Processador:</div>
+                    <div class="info-value">${cpu.name || 'Não disponível'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Memória:</div>
+                    <div class="info-value">${memoryGB}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Modelo do Disco:</div>
+                    <div class="info-value">${storage.model || 'Não disponível'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Tamanho do Disco:</div>
+                    <div class="info-value">${diskSizeGB}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Adaptador de Rede:</div>
+                    <div class="info-value">${activeNetwork.description || 'Não disponível'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Endereço IP:</div>
+                    <div class="info-value">${activeNetwork.ipaddress || 'Não disponível'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Endereço MAC:</div>
+                    <div class="info-value">${activeNetwork.mac || 'Não disponível'}</div>
+                </div>
+            `;
+            
+            // Gerar HTML para informações de software
+            softwareInfo.innerHTML = `
+                <div class="info-item">
+                    <div class="info-label">Nome do Computador:</div>
+                    <div class="info-value">${hardware.name || 'Não disponível'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Usuário:</div>
+                    <div class="info-value">${hardware.lastloggeduser || 'Não disponível'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Sistema Operacional:</div>
+                    <div class="info-value">${os.full_name || os.name || 'Não disponível'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Serial Windows:</div>
+                    <div class="info-value">${hardware.winprodid || 'Não disponível'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Data de Instalação:</div>
+                    <div class="info-value">${formatDate(os.install_date)}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Versão:</div>
+                    <div class="info-value">${os.version || 'Não disponível'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Service Pack:</div>
+                    <div class="info-value">${os.service_pack || 'N/A'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Fabricante do SO:</div>
+                    <div class="info-value">Microsoft Corporation</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Diretório Windows:</div>
+                    <div class="info-value">C:\\Windows</div>
+                </div>
+            `;
+            
+            // Gerar HTML para lista de aplicativos
+            if (softwares.length > 0) {
+                // Filtrar apenas aplicativos (não componentes do sistema)
+                const applications = softwares.filter(app => 
+                    app.system_category === 'application' || 
+                    app.system_category === 'store' || 
+                    app.system_category === 'developer' ||
+                    !app.system_category
+                );
+                
+                // Ordenar por nome
+                applications.sort((a, b) => a.name.localeCompare(b.name));
+                
+                if (applications.length > 0) {
+                    let appsHTML = '<table class="applications-table">';
+                    appsHTML += '<thead><tr><th>Nome</th><th>Editora</th><th>Versão</th><th>Data de Instalação</th></tr></thead><tbody>';
+                    
+                    // Limitar a 50 aplicativos para performance
+                    const displayApps = applications.slice(0, 50);
+                    
+                    displayApps.forEach(app => {
+                        appsHTML += `
+                            <tr>
+                                <td>${app.name || 'N/A'}</td>
+                                <td>${app.publisher || 'N/A'}</td>
+                                <td>${app.version || 'N/A'}</td>
+                                <td>${formatDate(app.install_date)}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    appsHTML += '</tbody></table>';
+                    
+                    if (applications.length > 50) {
+                        appsHTML += `<p style="margin-top: 10px; color: #7f8c8d;">Mostrando 50 de ${applications.length} aplicativos</p>`;
+                    }
+                    
+                    applicationsContainer.innerHTML = appsHTML;
+                } else {
+                    applicationsContainer.innerHTML = '<div class="no-data">Nenhum aplicativo encontrado</div>';
+                }
+            } else {
+                applicationsContainer.innerHTML = '<div class="no-data">Nenhum aplicativo encontrado</div>';
+            }
+            
+            // Gerar HTML para lista de usuários
+            if (users.length > 0) {
+                let usersHTML = '<table class="applications-table">';
+                usersHTML += '<thead><tr><th>Domínio</th><th>Login</th></tr></thead><tbody>';
+                
+                users.forEach(user => {
+                    usersHTML += `
+                        <tr>
+                            <td>${user.domain || 'N/A'}</td>
+                            <td>${user.login || 'N/A'}</td>
+                        </tr>
+                    `;
+                });
+                
+                usersHTML += '</tbody></table>';
+                usersContainer.innerHTML = usersHTML;
+            } else {
+                usersContainer.innerHTML = '<div class="no-data">Nenhum perfil de usuário encontrado</div>';
+            }
+            
+            // Mostrar conteúdo
+            noDataMessage.style.display = 'none';
+            infoContent.style.display = 'block';
+        }
+
+        // Função para formatar datas
+        function formatDate(dateString) {
+            if (!dateString || dateString === 'Não disponível') return 'Não disponível';
+            
+            try {
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) return dateString;
+                
+                return date.toLocaleDateString('pt-BR', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                }) + ' ' + date.toLocaleTimeString('pt-BR');
+            } catch {
+                return dateString;
+            }
+        }
+
+        // Função para mostrar erro
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+
+        // Função para resetar o formulário
+        function resetForm() {
+            fileInput.value = '';
+            fileName.textContent = 'Nenhum arquivo selecionado';
+            errorMessage.style.display = 'none';
+            noDataMessage.style.display = 'block';
+            infoContent.style.display = 'none';
+        }
+
+        // Função para carregar exemplo
+        function loadExample() {
+            fileName.textContent = 'Arquivo: Exemplo de Inventário';
+            errorMessage.style.display = 'none';
+            processInventoryData(exampleData);
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            // Nada a fazer na inicialização
+        });
+    </script>
+</body>
+</html>
